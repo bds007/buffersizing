@@ -365,7 +365,7 @@ def do_sweep(iface):
         ru_max = max(rates)
         ru_stdev = stdev(rates)
         # TODO: Calculate fraction correctly? What is denominator?
-        fraction = med / args.bw_net;
+        fraction = med / reference_rate;
         cprint ("Binary search rate median: %.3f max: %.3f stdev: %.3f frac: %.3f" %
                 (med, ru_max, ru_stdev, fraction), 'green')
         sys.stdout.flush()
@@ -374,9 +374,9 @@ def do_sweep(iface):
         okkk = ok(fraction)
         print okkk
         if (ok(fraction)):
-        	min_q = mid + 1
-        else:
         	max_q = mid - 1
+        else:
+        	min_q = mid + 1
         	
     monitor.terminate()
     print "*** Minq for target: %d" % max_q
