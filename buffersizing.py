@@ -429,21 +429,21 @@ def verify_bandwidth(net):
     print cmd
     c = client.popen(cmd)
     
+    # TODO test each connection."
     # Get measurements. 
-		iface = 's0-eth%d' % args.n
-		rates = get_rates(iface)
-		rates = rates[CALIBRATION_SKIP:]
-		med = median(rates)
-		ru_max = max(rates)
-		ru_stdev = stdev(rates)
-		fraction = med / args.bw_net
-		# TODO: Calculate fraction correctly? What is denominator?
-		cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % 
-					 (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
-		sys.stdout.flush()
-		# Shut down iperf processes
+    iface = 's0-eth%d' % args.n
+    rates = get_rates(iface)
+    rates = rates[CALIBRATION_SKIP:]
+    med = median(rates)
+    ru_max = max(rates)
+    ru_stdev = stdev(rates)
+    fraction = med / args.bw_net
+    # TODO: Calculate fraction correctly? What is denominator?
+    cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
+    sys.stdout.flush()
+    # Shut down iperf processes
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
-		return (fraction >= START_BW_FRACTION)
+    return (fraction >= START_BW_FRACTION)
 
 # Start iperf on the receiver node
 # Hint: use getNodeByName to get a handle on the sender node
