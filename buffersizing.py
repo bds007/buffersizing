@@ -368,7 +368,7 @@ def do_sweep(iface):
         # TODO: Calculate fraction correctly? What is denominator?
         fraction = med / args.bw_net;
         cprint ("Binary search rate median: %.3f max: %.3f stdev: %.3f frac: %.3f" %
-                (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
+                (med, ru_max, ru_stdev, fraction), 'green')
         sys.stdout.flush()
         
         # Update values of min and max queue.
@@ -440,7 +440,7 @@ def verify_bandwidth(net):
     ru_stdev = stdev(rates)
     fraction = med / args.bw_net
     # TODO: Calculate fraction correctly? What is denominator?
-    cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
+    cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), 'green')
     sys.stdout.flush()
     # Shut down iperf processes
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
