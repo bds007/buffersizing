@@ -412,7 +412,7 @@ def verify_latency(net):
 # Fill in the following function to verify the bandwidth
 # settings of your topology. This function assumes it has been called after 
 # the iperfs have started.
-
+# TODO: upper and lower bounds on bandwidth.
 def verify_bandwidth(net):
 		# Start iperf server.
     server = net.getNodeByName('h%d' % (args.n-1))
