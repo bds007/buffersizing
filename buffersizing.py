@@ -434,6 +434,7 @@ def verify_bandwidth(net):
     iface = 's0-eth%d' % args.n
     rates = get_rates(iface)
     rates = rates[CALIBRATION_SKIP:]
+    print rates
     med = median(rates)
     ru_max = max(rates)
     ru_stdev = stdev(rates)
