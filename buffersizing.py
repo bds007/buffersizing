@@ -446,7 +446,7 @@ def start_receiver(net):
     print "Starting iperf servers..."
     port = 5001
     for i in range(args.n - 1):
-    	cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, (port + i), args.dir)
+    	cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, port, args.dir)
     	print cmd
     	server.popen(cmd)
 
@@ -474,7 +474,7 @@ def start_senders(net):
     		client = net.getNodeByName('h%d' % i)
     		# Create commmand
     		output_file = IPERF_CLIENT_OUTPUT % i
-    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, args.cong, args.dir, output_file)
+    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), (port + i), seconds, args.cong, args.dir, output_file)
     		print cmd
     		# Create nflows TODO: is this number correct.
     		#for j in range(args.nflows):
