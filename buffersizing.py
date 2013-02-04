@@ -448,7 +448,7 @@ def start_receiver(net):
     #for i in range(args.n - 1):
     cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, port, args.dir)
     print cmd
-    server.popen(cmd)
+    server.popen(cmd, shell=True)
 
 # Start args.nflows flows across the senders in a round-robin fashion
 # Hint: use getNodeByName to get a handle on the sender (A or B in the
@@ -478,7 +478,7 @@ def start_senders(net):
     		print cmd
     		# Create nflows TODO: is this number correct.
     		#for j in range(args.nflows):
-    		client.popen(cmd)
+    		client.popen(cmd, shell=True)
 
 def main():
     "Create network and run Buffer Sizing experiment"
