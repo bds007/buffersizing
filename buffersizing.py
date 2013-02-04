@@ -38,6 +38,9 @@ TARGET_UTIL_FRACTION = 0.98
 # limiting error.
 START_BW_FRACTION = 0.9
 
+# Number of ping samples to verify latency.
+N_PING_SAMPLES = 1
+
 # Number of samples to take in get_rates() before returning.
 NSAMPLES = 3
 
@@ -47,6 +50,8 @@ SAMPLE_PERIOD_SEC = 1.0
 # Time to wait for first sample, in seconds, as a float.
 SAMPLE_WAIT_SEC = 3.0
 
+# Iperf client output file format
+IPERF_CLIENT_OUTPUT = 'iperf_client%d.txt'
 
 def cprint(s, color, cr=True):
     """Print in color
@@ -151,11 +156,37 @@ class StarTopo(Topo):
         self.maxq = maxq
         self.create_topology()
 
-    # TODO: Fill in the following function to Create the experiment
-    # topology Set appropriate values for bandwidth, delay, and queue
-    # size.
+    # Create the experiment topology. Set appropriate values for bandwidth, delay, 
+    # and queue size.
     def create_topology(self):
-        pass
+        
+        # Create n hosts.
+        hosts = []
+        for i in range(self.n):
+        	host = self.addHost('h%d', i)
+        	hosts.append(host)
+
+        # Here I have created a switch.  If you change its name, its
+        # interface names will change from s0-eth1 to newname-eth1.
+        switch = self.addSwitch('s0')
+
+        # Create link options dictionary for hosts.
+        # Delay is equal to the one way delay.
+        linkopts = dict(bw=self.bw_host, 
+                        delay=self.delay,
+                        cpu=self.cpu)
+        print "Client link opts: " + str(linkopts)
+                 
+        # Add link from home computers to the switch.
+        for i in range(self.n - 1):
+        	self.addLink(hosts[i], switch, **linkopts)
+        
+        # Add link from server to switch. Bottleneck link.
+        q_size = args.bw_net * 2 * args.delay * 1000.0 / 8.0 / 1500.0
+        linkopts['bw'] = self.bw_net
+        linkopts['max_queue_size'] = q_size
+        self.addLink(hosts[-1], switch, **linkopts)
+        print "Server link opts: " + str(linkopts)
 
 def start_tcpprobe():
     "Install tcp_probe module and dump to file"
@@ -298,11 +329,17 @@ def do_sweep(iface):
         print 'Giving up'
         return -1
 
-    # TODO: Set the speed back to the bottleneck link speed.
+    # Set the speed back to the bottleneck link speed.
     set_speed(iface, "%.2fMbit" % args.bw_net)
     print "\nSetting q=%d " % max_q,
     sys.stdout.flush()
     set_q(iface, max_q)
+    
+    # Verify bandwidth.
+    result = verify_bandwidth(net)
+    if not result:
+				print 'Incorrect bandwidth.'
+				return -1
 
     # Wait till link is 100% utilised and train
     reference_rate = 0.0
@@ -317,43 +354,80 @@ def do_sweep(iface):
         cprint ("Reference rate median: %.3f max: %.3f stdev: %.3f" %
                 (reference_rate, ru_max, ru_stdev), 'blue')
         sys.stdout.flush()
-
+    
+    print "Begin binary search."
     while abs(min_q - max_q) >= 2:
         mid = (min_q + max_q) / 2
-        print "Trying q=%d  [%d,%d] " % (mid, min_q, max_q),
+        print "\nTrying q=%d  [%d,%d] " % (mid, min_q, max_q),
         sys.stdout.flush()
 
-        # TODO: Binary search over queue sizes.
-        # (1) Check if a queue size of "mid" achieves required utilization
-        #     based on the median value of the measured rate samples.
-        # (2) Change values of max_q and min_q accordingly
-        #     to continue with the binary search
-
-        # You may use the helper functions set_q(),
-        # get_rates(), avg(), median() and ok()
-
-        # Note: this do_sweep function does a bunch of setup, so do
-        # not recursively call do_sweep to do binary search.
-
+        # Set queue size. 
+        print "Setting q=%d " % max_q,
+        set_q(iface, mid)
+        
+        # Grab rates, ignore first few.
+        rates = get_rates(iface)
+        rates = rates[CALIBRATION_SKIP:]
+        med = median(rates)
+        ru_max = max(rates)
+        ru_stdev = stdev(rates)
+        # TODO: Calculate fraction correctly? What is denominator?
+        fraction = med / args.bw_net;
+        cprint ("Binary search rate median: %.3f max: %.3f stdev: %.3f frac: %.3f" %
+                (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
+        sys.stdout.flush()
+        
+        # Update values of min and max queue.
+        if (ok(fraction)):
+        	min_q = med + 1
+        else:
+        	max_q = med - 1
+        	
     monitor.terminate()
     print "*** Minq for target: %d" % max_q
     return max_q
 
-# TODO: Fill in the following function to verify the latency
+# Fill in the following function to verify the latency
 # settings of your topology
 
 def verify_latency(net):
-    "(Incomplete) verify link latency"
-    pass
+    print "Verify latency..."
+    server = net.getNodeByName('h%' % (args.n - 1))
+    cmd = "ping -c %d %s" % (N_PING_SAMPLES, server.IP())
+    print cmd
+    for i in range(args.n - 1):
+   			client = net.getNodeByName('h%d' % i)
+   			p = client.popen(cmd, shell=True, stdout=PIPE)
+   			# TODO: check that it is valid how? greater than 
+   			output = p.stdout.read()
+   			print output
+   			equalsindex = output.find(' = ')
+   			minindex = equalsindex + 3
+   			slashindex = output.find('/', equalsindex)
+   			min_latency = float(output[minindex:slashindex])
+   			print min_latency
+   			# If the minimum latency is less than the specified rtt, return false.
+   			if (min_latency < args.delay * 2.0):
+    				return False
+    return True
 
-# TODO: Fill in the following function to verify the bandwidth
-# settings of your topology
+# Fill in the following function to verify the bandwidth
+# settings of your topology. This function assumes it has been called after 
+# the iperfs have started.
 
 def verify_bandwidth(net):
-    "(Incomplete) verify link bandwidth"
-    pass
+		rates = get_rates(iface)
+		rates = rates[CALIBRATION_SKIP:]
+		med = median(rates)
+		ru_max = max(rates)
+		ru_stdev = stdev(rates)
+		fraction = med / args.bw_net
+		# TODO: Calculate fraction correctly? What is denominator?
+		cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % 
+					 (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
+		sys.stdout.flush()
+		return (fraction >= START_BW_FRACTION)
 
-# TODO: Fill in the following function to
 # Start iperf on the receiver node
 # Hint: use getNodeByName to get a handle on the sender node
 # Hint: iperf command to start the receiver:
@@ -363,9 +437,13 @@ def verify_bandwidth(net):
 #       It will be used later in count_connections()
 
 def start_receiver(net):
-    pass
+		# Start iperf server.
+    server = net.getNodeByName('h%d' % args.n - 1)
+    print "Starting iperf server..."
+    cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, 5001, args.dir)
+    print cmd
+    server = server.popen(cmd)
 
-# TODO: Fill in the following function to
 # Start args.nflows flows across the senders in a round-robin fashion
 # Hint: use getNodeByName to get a handle on the sender (A or B in the
 # figure) and receiver node (C in the figure).
@@ -380,7 +458,19 @@ def start_receiver(net):
 def start_senders(net):
     # Seconds to run iperf; keep this very high
     seconds = 3600
-    pass
+    # Start the iperf clients on host 1 through n-1.  Ensure that you create a
+    # long lived TCP flow
+    for i in range(args.n - 1):
+    		# Start many iperf clients.
+    		print "Starting iperf client %d..." % i
+    		client = net.getNodeByName('h%d' % i)
+    		# Create commmand
+    		output_file = IPERF_CLIENT_OUTPUT % i
+    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, args.cong, args.dir, output_file)
+    		print cmd
+    		# Create nflows
+    		for j in range(args.nflows):
+    			client.popen(cmd)
 
 def main():
     "Create network and run Buffer Sizing experiment"
@@ -395,10 +485,10 @@ def main():
     dumpNodeConnections(net.hosts)
     net.pingAll()
 
-    # TODO: verify latency and bandwidth of links in the topology you
-    # just created.
-    verify_latency(net)
-    verify_bandwidth(net)
+    # Verify latency. Bandwidth is verified later.
+    if not verify_latency(net):
+    		print "Incorrect latency."
+    		return
 
     start_receiver(net)
 
@@ -408,8 +498,7 @@ def main():
 
     start_senders(net)
 
-    # TODO: change the interface for which queue size is adjusted
-    ret = do_sweep(iface='s0-eth1')
+    ret = do_sweep(iface='s0-eth%d' % args.n)
     total_flows = (args.n - 1) * args.nflows
 
     # Store output.  It will be parsed by run.sh after the entire
