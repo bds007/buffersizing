@@ -445,10 +445,10 @@ def start_receiver(net):
     server = net.getNodeByName('h%d' % (args.n - 1))
     print "Starting iperf servers..."
     port = 5001
-    for i in range(args.n - 1):
-    	cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, port, args.dir)
-    	print cmd
-    	server.popen(cmd)
+    #for i in range(args.n - 1):
+    cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, port, args.dir)
+    print cmd
+    server.popen(cmd)
 
 # Start args.nflows flows across the senders in a round-robin fashion
 # Hint: use getNodeByName to get a handle on the sender (A or B in the
