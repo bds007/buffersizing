@@ -24,7 +24,7 @@ iperf=~/iperf-patched/src/iperf
 # TODO: change the interface name for which queue size is adjusted
 # Links are numbered as switchname-eth1,2,etc in the order they are
 # added to the topology.
-iface=s0-eth1
+iface=s0-eth3
 
 for run in 1; do
 for flows_per_host in 1; do # 2 5 10 50 100 200 300 400; do
