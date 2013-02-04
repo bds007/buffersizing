@@ -448,7 +448,7 @@ def start_receiver(net):
     for i in range(args.n - 1):
     	cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, (port + i), args.dir)
     	print cmd
-    	server = server.popen(cmd)
+    	server.popen(cmd)
 
 # Start args.nflows flows across the senders in a round-robin fashion
 # Hint: use getNodeByName to get a handle on the sender (A or B in the
