@@ -432,7 +432,7 @@ def verify_bandwidth(net):
     # TODO test each connection."
     # Get measurements. 
     iface = 's0-eth%d' % args.n
-    rates = get_rates(iface)
+    rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
     rates = rates[CALIBRATION_SKIP:]
     print rates
     med = median(rates)
