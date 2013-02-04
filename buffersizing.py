@@ -174,8 +174,7 @@ class StarTopo(Topo):
         # Create link options dictionary for hosts.
         # Delay is equal to the one way delay over 2.
         linkopts = dict(bw=self.bw_host, 
-                        delay='%fms' % (self.delay / 2),
-                        cpu=self.cpu)
+                        delay='%fms' % (self.delay / 2))
         print "Client link opts: " + str(linkopts)
                  
         # Add link from home computers to the switch.
@@ -335,12 +334,6 @@ def do_sweep(iface):
     print "\nSetting q=%d " % max_q,
     sys.stdout.flush()
     set_q(iface, max_q)
-    
-    # Verify bandwidth.
-    result = verify_bandwidth(net)
-    if not result:
-				print 'Incorrect bandwidth.'
-				return -1
 
     # Wait till link is 100% utilised and train
     reference_rate = 0.0
@@ -420,6 +413,24 @@ def verify_latency(net):
 # the iperfs have started.
 
 def verify_bandwidth(net):
+		# Start iperf server.
+    server = net.getNodeByName('h%d' % (args.n-1))
+    print "Starting iperf server..."
+    cmd = "iperf -s -w 16m"
+    print cmd
+    s = server.popen(cmd)
+    
+    # Start the iperf client on h1.  Ensure that you create a
+    # long lived TCP flow.
+    client = net.getNodeByName('h0')
+    print "Starting iperf client..."
+    # TODO: change this to use a define time. 
+    cmd = "iperf -c %s -t %d" % (server.IP(), 3600)
+    print cmd
+    c = client.popen(cmd)
+    
+    # Get measurements. 
+		iface = 's0-eth%d' % args.n
 		rates = get_rates(iface)
 		rates = rates[CALIBRATION_SKIP:]
 		med = median(rates)
@@ -430,6 +441,8 @@ def verify_bandwidth(net):
 		cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % 
 					 (med, ru_max, ru_stdev, fraction), format_fraction(fraction))
 		sys.stdout.flush()
+		# Shut down iperf processes
+    os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 		return (fraction >= START_BW_FRACTION)
 
 # Start iperf on the receiver node
@@ -493,10 +506,16 @@ def main():
     dumpNodeConnections(net.hosts)
     net.pingAll()
 
-    # Verify latency. Bandwidth is verified later.
+    # Verify latency. 
     if not verify_latency(net):
     		print "Incorrect latency."
     		return
+    
+    # Verify bandwidth.
+    result = verify_bandwidth(net)
+    if not result:
+				print 'Incorrect bandwidth.'
+				return
 
     start_receiver(net)
 
