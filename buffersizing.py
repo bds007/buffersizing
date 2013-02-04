@@ -359,9 +359,8 @@ def do_sweep(iface):
         print "Setting q=%d " % max_q,
         set_q(iface, mid)
         
-        # Grab rates, ignore first few.
+        # Grab rates.
         rates = get_rates(iface)
-        rates = rates[CALIBRATION_SKIP:]
         med = median(rates)
         ru_max = max(rates)
         ru_stdev = stdev(rates)
