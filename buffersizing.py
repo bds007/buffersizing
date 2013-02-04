@@ -161,6 +161,7 @@ class StarTopo(Topo):
     def create_topology(self):
         
         # Create n hosts.
+        print n
         hosts = []
         for i in range(self.n):
         	host = self.addHost('h%d', i)
@@ -171,9 +172,9 @@ class StarTopo(Topo):
         switch = self.addSwitch('s0')
 
         # Create link options dictionary for hosts.
-        # Delay is equal to the one way delay.
+        # Delay is equal to the one way delay over 2.
         linkopts = dict(bw=self.bw_host, 
-                        delay=self.delay,
+                        delay='%fms' % (self.delay / 2),
                         cpu=self.cpu)
         print "Client link opts: " + str(linkopts)
                  
@@ -478,7 +479,7 @@ def main():
     start = time()
     # Reset to known state
     topo = StarTopo(n=args.n, bw_host=args.bw_host,
-                    delay='%sms' % args.delay,
+                    delay=args.delay,
                     bw_net=args.bw_net, maxq=args.maxq)
     net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
     net.start()
