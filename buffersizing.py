@@ -393,7 +393,7 @@ def do_sweep(iface):
 
 def verify_latency(net):
     print "Verify latency..."
-    server = net.getNodeByName('h%' % (args.n - 1))
+    server = net.getNodeByName('h%d' % (args.n - 1))
     cmd = "ping -c %d %s" % (N_PING_SAMPLES, server.IP())
     print cmd
     for i in range(args.n - 1):
