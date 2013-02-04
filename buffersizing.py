@@ -439,7 +439,7 @@ def verify_bandwidth(net):
 
 def start_receiver(net):
 		# Start iperf server.
-    server = net.getNodeByName('h%d' % args.n - 1)
+    server = net.getNodeByName('h%d' % (args.n - 1))
     print "Starting iperf server..."
     cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, 5001, args.dir)
     print cmd
