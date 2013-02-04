@@ -161,7 +161,7 @@ class StarTopo(Topo):
     def create_topology(self):
         
         # Create n hosts.
-        print n
+        print self.n
         hosts = []
         for i in range(self.n):
         	host = self.addHost('h%d', i)
