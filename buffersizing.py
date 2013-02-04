@@ -461,6 +461,7 @@ def start_senders(net):
     seconds = 3600
     # Start the iperf clients on host 1 through n-1.  Ensure that you create a
     # long lived TCP flow
+    server = net.getNodeByName('h%d' % (args.n - 1))
     for i in range(args.n - 1):
     		# Start many iperf clients.
     		print "Starting iperf client %d..." % i
