@@ -474,7 +474,7 @@ def start_senders(net):
     		client = net.getNodeByName('h%d' % i)
     		# Create commmand
     		output_file = IPERF_CLIENT_OUTPUT % i
-    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), (port + i), seconds, args.cong, args.dir, output_file)
+    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), port, seconds, args.cong, args.dir, output_file)
     		print cmd
     		# Create nflows TODO: is this number correct.
     		#for j in range(args.nflows):
