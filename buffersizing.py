@@ -356,7 +356,7 @@ def do_sweep(iface):
         sys.stdout.flush()
 
         # Set queue size. 
-        print "Setting q=%d " % max_q,
+        print "Setting q=%d " % mid,
         set_q(iface, mid)
         
         # Grab rates.
@@ -371,10 +371,12 @@ def do_sweep(iface):
         sys.stdout.flush()
         
         # Update values of min and max queue.
+        okkk = ok(fraction)
+        print okkk
         if (ok(fraction)):
-        	min_q = med + 1
+        	min_q = mid + 1
         else:
-        	max_q = med - 1
+        	max_q = mid - 1
         	
     monitor.terminate()
     print "*** Minq for target: %d" % max_q
