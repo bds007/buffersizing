@@ -39,7 +39,7 @@ TARGET_UTIL_FRACTION = 0.98
 START_BW_FRACTION = 0.9
 
 # Number of ping samples to verify latency.
-N_PING_SAMPLES = 1
+N_LATENCY_SAMPLES = 3
 
 # Number of samples to take in get_rates() before returning.
 NSAMPLES = 3
@@ -394,7 +394,7 @@ def do_sweep(iface):
 def verify_latency(net):
     print "Verify latency..."
     server = net.getNodeByName('h%d' % (args.n - 1))
-    cmd = "ping -c %d %s" % (N_PING_SAMPLES, server.IP())
+    cmd = "ping -c %d %s" % (N_LATENCY_SAMPLES, server.IP())
     print cmd
     for i in range(args.n - 1):
    			client = net.getNodeByName('h%d' % i)
@@ -407,9 +407,12 @@ def verify_latency(net):
    			slashindex = output.find('/', equalsindex)
    			min_latency = float(output[minindex:slashindex])
    			print min_latency
+   			print args.delay * 2.0
    			# If the minimum latency is less than the specified rtt, return false.
    			if (min_latency < args.delay * 2.0):
     				return False
+    		
+    		# TODO: Add check that it is not too high?
     return True
 
 # Fill in the following function to verify the bandwidth
@@ -436,14 +439,16 @@ def verify_bandwidth(net):
 #        (CUSTOM_IPERF_PATH, 5001, args.dir)
 # Note: The output file should be <args.dir>/iperf_server.txt
 #       It will be used later in count_connections()
-
+#TODO: how to create many connections?
 def start_receiver(net):
 		# Start iperf server.
     server = net.getNodeByName('h%d' % (args.n - 1))
-    print "Starting iperf server..."
-    cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, 5001, args.dir)
-    print cmd
-    server = server.popen(cmd)
+    print "Starting iperf servers..."
+    port = 5001
+    for i in range(args.n - 1):
+    	cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, (port + i), args.dir)
+    	print cmd
+    	server = server.popen(cmd)
 
 # Start args.nflows flows across the senders in a round-robin fashion
 # Hint: use getNodeByName to get a handle on the sender (A or B in the
@@ -462,6 +467,7 @@ def start_senders(net):
     # Start the iperf clients on host 1 through n-1.  Ensure that you create a
     # long lived TCP flow
     server = net.getNodeByName('h%d' % (args.n - 1))
+    port = 5001
     for i in range(args.n - 1):
     		# Start many iperf clients.
     		print "Starting iperf client %d..." % i
@@ -470,9 +476,9 @@ def start_senders(net):
     		output_file = IPERF_CLIENT_OUTPUT % i
     		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, args.cong, args.dir, output_file)
     		print cmd
-    		# Create nflows
-    		for j in range(args.nflows):
-    			client.popen(cmd)
+    		# Create nflows TODO: is this number correct.
+    		#for j in range(args.nflows):
+    		client.popen(cmd)
 
 def main():
     "Create network and run Buffer Sizing experiment"
