@@ -429,7 +429,7 @@ def verify_bandwidth(net):
     print cmd
     c = client.popen(cmd)
     
-    # TODO test each connection."
+    # TODO test each connection.
     # Get measurements. 
     iface = 's0-eth%d' % args.n
     rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
@@ -443,8 +443,8 @@ def verify_bandwidth(net):
     cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), 'green')
     sys.stdout.flush()
     # Shut down iperf processes
-    os.system('killall -9 ' + CUSTOM_IPERF_PATH)
-    return (fraction >= START_BW_FRACTION)
+    os.system('killall -9 iperf')
+    return (fraction >= TARGET_UTIL_FRACTION)
 
 # Start iperf on the receiver node
 # Hint: use getNodeByName to get a handle on the sender node
@@ -457,7 +457,7 @@ def verify_bandwidth(net):
 def start_receiver(net):
 		# Start iperf server.
     server = net.getNodeByName('h%d' % (args.n - 1))
-    print "Starting iperf servers..."
+    print "Starting iperf server..."
     port = 5001
     #for i in range(args.n - 1):
     cmd = '%s -s -p %s > %s/iperf_server.txt' % (CUSTOM_IPERF_PATH, port, args.dir)
@@ -491,8 +491,8 @@ def start_senders(net):
     		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), port, seconds, args.cong, args.dir, output_file)
     		print cmd
     		# Create nflows TODO: is this number correct.
-    		#for j in range(args.nflows):
-    		client.popen(cmd, shell=True)
+    		for j in range(args.nflows):
+    			client.popen(cmd, shell=True)
 
 def main():
     "Create network and run Buffer Sizing experiment"
