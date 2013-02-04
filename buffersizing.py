@@ -164,7 +164,7 @@ class StarTopo(Topo):
         print self.n
         hosts = []
         for i in range(self.n):
-        	host = self.addHost('h%d', i)
+        	host = self.addHost('h%d' % i)
         	hosts.append(host)
 
         # Here I have created a switch.  If you change its name, its
