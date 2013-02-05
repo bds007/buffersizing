@@ -30,7 +30,7 @@ CALIBRATION_SAMPLES = 30
 
 # Set the fraction of the link utilization that the measurement must exceed
 # to be considered as having enough buffering.
-TARGET_UTIL_FRACTION = 0.98
+TARGET_UTIL_FRACTION = 0.99
 
 # Fraction of input bandwidth required to begin the experiment.
 # At exactly 100%, the experiment may take awhile to start, or never start,
