@@ -24,10 +24,11 @@ iperf=~/iperf-patched/src/iperf
 # TODO: change the interface name for which queue size is adjusted
 # Links are numbered as switchname-eth1,2,etc in the order they are
 # added to the topology.
-iface=s0-eth3
+n_nodes=3
+iface=s0-eth$n_nodes
 
-for run in 1 2 3 4 5; do
-for flows_per_host in 1 2 5 10 50 100 200 300 400; do
+for run in 1; do
+for flows_per_host in 1; do # 2 5 10 50 100 200 300 400; do
 	dir=$rootdir/nf$flows_per_host-r$run
 
 	python buffersizing.py --bw-host 1000 \
@@ -35,7 +36,7 @@ for flows_per_host in 1 2 5 10 50 100 200 300 400; do
 		--delay 43.5 \
 		--dir $dir \
 		--nflows $flows_per_host \
-		-n 3 \
+		-n $n_nodes \
 		--iperf $iperf
 
 	python $plotpath/plot_queue.py -f $dir/qlen_$iface.txt -o $dir/q.png
