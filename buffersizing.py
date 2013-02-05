@@ -409,36 +409,31 @@ def verify_latency(net):
 
 def verify_bandwidth(net):
 		print "Verifying bandwidth..."
-		
 		# Start iperf server.
-    server = net.getNodeByName('h%d' % (args.n-1))
-    print "Starting iperf server..."
-    cmd = "iperf -s -w 16m"
-    print cmd
-    s = server.popen(cmd)
-    
-    # Start the iperf client on h1.  Ensure that you create a
-    # long lived TCP flow.
-    client = net.getNodeByName('h0')
-    print "Starting iperf client..."
-    cmd = "iperf -c %s -t %d" % (server.IP(), LONG_TIME_SECONDS)
-    print cmd
-    c = client.popen(cmd)
-    
-    # Get measurements. I only measure one flow because the hosts are created identically.
-    iface = 's0-eth%d' % args.n
-    rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
-    rates = rates[CALIBRATION_SKIP:]
-    med = median(rates)
-    ru_max = max(rates)
-    ru_stdev = stdev(rates)
-    fraction = med / args.bw_net
-    cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), 'blue')
-    sys.stdout.flush()
-    
-    # Shut down iperf processes
-    os.system('killall -9 iperf')
-    return (fraction >= TARGET_UTIL_FRACTION)
+		server = net.getNodeByName('h%d' % (args.n-1))
+		print "Starting iperf server..."
+		cmd = "iperf -s -w 16m"
+		print cmd
+		s = server.popen(cmd)
+		# Start the iperf client on h1.  Ensure that you create a long lived TCP flow.
+		client = net.getNodeByName('h0')
+		print "Starting iperf client..."
+		cmd = "iperf -c %s -t %d" % (server.IP(), LONG_TIME_SECONDS)
+		print cmd
+		c = client.popen(cmd)
+		# Get measurements. I only measure one flow because the hosts are created identically.
+		iface = 's0-eth%d' % args.n
+		rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
+		rates = rates[CALIBRATION_SKIP:]
+		med = median(rates)
+		ru_max = max(rates)
+		ru_stdev = stdev(rates)
+		fraction = med / args.bw_net
+		cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), 'blue')
+		sys.stdout.flush()
+		# Shut down iperf processes
+		os.system('killall -9 iperf')
+		return (fraction >= TARGET_UTIL_FRACTION)
 
 # Start iperf on the receiver node
 # Hint: use getNodeByName to get a handle on the sender node
