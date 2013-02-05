@@ -57,4 +57,5 @@ assignment?
 Mininet memory and CPU limitations became apparent when running large numbers of flows on 
 the medium size instance. Choosing an assignment that doesn't require large scales of flows
 or nodes, or require extremely high bandwidth that exceeds that of the ec2 server is 
-important.
+important. Also, since timing measurement can be affected by the current load on the
+server, it would be good to avoid projects that require large variations in server load.

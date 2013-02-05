@@ -21,10 +21,10 @@ rootdir=buffersizing-$exptid
 plotpath=util
 iperf=~/iperf-patched/src/iperf
 
-# TODO: change the interface name for which queue size is adjusted
+# Change the interface name for which queue size is adjusted
 # Links are numbered as switchname-eth1,2,etc in the order they are
 # added to the topology.
-n_nodes=10
+n_nodes=3
 iface=s0-eth$n_nodes
 
 for run in 1; do
