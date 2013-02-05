@@ -33,8 +33,18 @@ buffering at the bottleneck switch.  If there is only one total TCP flow at the 
 link, what is the minimum amount of buffering required to keep the bottleneck link 100% 
 utilized?  Why?
 
+Buffering needed at the bottleneck to make sure that when a link is congested, it is busy 
+100% of the time; which is equivalent to making sure its buffer never goes empty. If there
+were not enough buffer, packets would simply be dropped when they reach the bottleneck 
+link. For on TCP flow the minimum amount of buffering required is equal to bottleneck
+link rate times the round trip time. To make sure the buffer never goes empty in this case 
+we must make sure that 
+
 5) What happens to cwnd and minimum required buffer size as you increase the total number 
 of flows? Why?
+
+The cwnd and minimum required buffer size decrease as you increase the total number of 
+flows. This is because 
 
 6) Describe potential hurdles when using Mininet to reproduce research results. How can 
 this knowledge guide you when choosing a research project for the next programming 
