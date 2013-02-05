@@ -42,7 +42,7 @@ START_BW_FRACTION = 0.9
 N_LATENCY_SAMPLES = 3
 
 # Number of samples to take in get_rates() before returning.
-NSAMPLES = 3
+NSAMPLES = 10
 
 # Time to wait between samples, in seconds, as a float.
 SAMPLE_PERIOD_SEC = 1.0
@@ -507,17 +507,17 @@ def main():
     net.start()
     dumpNodeConnections(net.hosts)
     net.pingAll()
-
+    #TODO: uncomment.
     # Verify latency. 
-    if not verify_latency(net):
-    		print "Incorrect latency."
-    		return
+    #if not verify_latency(net):
+    #		print "Incorrect latency."
+    #		return
     
     # Verify bandwidth.
-    result = verify_bandwidth(net)
-    if not result:
-				print 'Incorrect bandwidth.'
-				return
+    #result = verify_bandwidth(net)
+    #if not result:
+		#		print 'Incorrect bandwidth.'
+		#		return
 
     start_receiver(net)
 
