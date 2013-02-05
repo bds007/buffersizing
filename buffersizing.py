@@ -21,6 +21,8 @@ import os
 from util.monitor import monitor_qlen
 from util.helper import stdev
 
+# Long time used to set up long live tcp connections.
+LONG_TIME_SECONDS = 3600
 
 # Number of samples to skip for reference util calibration.
 CALIBRATION_SKIP = 10
@@ -30,7 +32,7 @@ CALIBRATION_SAMPLES = 30
 
 # Set the fraction of the link utilization that the measurement must exceed
 # to be considered as having enough buffering.
-TARGET_UTIL_FRACTION = 0.99
+TARGET_UTIL_FRACTION = 0.98
 
 # Fraction of input bandwidth required to begin the experiment.
 # At exactly 100%, the experiment may take awhile to start, or never start,
@@ -175,7 +177,6 @@ class StarTopo(Topo):
         # Delay is equal to the one way delay over 2.
         linkopts = dict(bw=self.bw_host, 
                         delay='%fms' % (self.delay / 2))
-        print "Client link opts: " + str(linkopts)
                  
         # Add link from home computers to the switch.
         for i in range(self.n - 1):
@@ -186,7 +187,6 @@ class StarTopo(Topo):
         linkopts['bw'] = self.bw_net
         linkopts['max_queue_size'] = q_size
         self.addLink(hosts[-1], switch, **linkopts)
-        print "Server link opts: " + str(linkopts)
 
 def start_tcpprobe():
     "Install tcp_probe module and dump to file"
@@ -370,8 +370,6 @@ def do_sweep(iface):
         sys.stdout.flush()
         
         # Update values of min and max queue.
-        okkk = ok(fraction)
-        print okkk
         if (ok(fraction)):
         	max_q = mid - 1
         else:
@@ -392,26 +390,23 @@ def verify_latency(net):
     for i in range(args.n - 1):
    			client = net.getNodeByName('h%d' % i)
    			p = client.popen(cmd, shell=True, stdout=PIPE)
-   			# TODO: check that it is valid how? greater than 
    			output = p.stdout.read()
-   			print output
    			equalsindex = output.find(' = ')
    			minindex = equalsindex + 3
    			slashindex = output.find('/', equalsindex)
    			min_latency = float(output[minindex:slashindex])
-   			print min_latency
-   			print args.delay * 2.0
-   			# If the minimum latency is less than the specified rtt, return false.
-   			if (min_latency < args.delay * 2.0):
+   			cprint ("Verify latency min: %.3f expected: %.3f" % (min_latency, args.delay * 2.0), 'blue')
+   			sys.stdout.flush()
+   			# If the minimum latency is less than the specified rtt, 
+   			# or greater than the specified rtt + 1 ms, return false.
+   			if ((min_latency < args.delay * 2.0) or (min_latency > args.delay * 2.0 + 1.0)):
     				return False
-    		
-    		# TODO: Add check that it is not too high?
     return True
 
 # Fill in the following function to verify the bandwidth
 # settings of your topology. This function assumes it has been called after 
 # the iperfs have started.
-# TODO: upper and lower bounds on bandwidth.
+
 def verify_bandwidth(net):
 		# Start iperf server.
     server = net.getNodeByName('h%d' % (args.n-1))
@@ -424,24 +419,21 @@ def verify_bandwidth(net):
     # long lived TCP flow.
     client = net.getNodeByName('h0')
     print "Starting iperf client..."
-    # TODO: change this to use a define time. 
-    cmd = "iperf -c %s -t %d" % (server.IP(), 3600)
+    cmd = "iperf -c %s -t %d" % (server.IP(), LONG_TIME_SECONDS)
     print cmd
     c = client.popen(cmd)
     
-    # TODO test each connection.
-    # Get measurements. 
+    # Get measurements. I only measure one flow because the hosts are created identically.
     iface = 's0-eth%d' % args.n
     rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
     rates = rates[CALIBRATION_SKIP:]
-    print rates
     med = median(rates)
     ru_max = max(rates)
     ru_stdev = stdev(rates)
     fraction = med / args.bw_net
-    # TODO: Calculate fraction correctly? What is denominator?
-    cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), 'green')
+    cprint ("Verify bandwidth median: %.3f max: %.3f stdev: %.3f frac: %.3f" % (med, ru_max, ru_stdev, fraction), 'blue')
     sys.stdout.flush()
+    
     # Shut down iperf processes
     os.system('killall -9 iperf')
     return (fraction >= TARGET_UTIL_FRACTION)
@@ -476,8 +468,6 @@ def start_receiver(net):
 # submit these in your final submission.
 
 def start_senders(net):
-    # Seconds to run iperf; keep this very high
-    seconds = 3600
     # Start the iperf clients on host 1 through n-1.  Ensure that you create a
     # long lived TCP flow
     server = net.getNodeByName('h%d' % (args.n - 1))
@@ -488,7 +478,7 @@ def start_senders(net):
     		client = net.getNodeByName('h%d' % i)
     		# Create commmand
     		output_file = IPERF_CLIENT_OUTPUT % i
-    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), port, seconds, args.cong, args.dir, output_file)
+    		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), port, LONG_TIME_SECONDS, args.cong, args.dir, output_file)
     		print cmd
     		# Create nflows 
     		for j in range(args.nflows):
