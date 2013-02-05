@@ -408,6 +408,8 @@ def verify_latency(net):
 # the iperfs have started.
 
 def verify_bandwidth(net):
+		print "Verifying bandwidth..."
+		
 		# Start iperf server.
     server = net.getNodeByName('h%d' % (args.n-1))
     print "Starting iperf server..."
