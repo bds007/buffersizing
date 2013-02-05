@@ -364,7 +364,6 @@ def do_sweep(iface):
         med = median(rates)
         ru_max = max(rates)
         ru_stdev = stdev(rates)
-        # TODO: Calculate fraction correctly? What is denominator?
         fraction = med / reference_rate;
         cprint ("Binary search rate median: %.3f max: %.3f stdev: %.3f frac: %.3f" %
                 (med, ru_max, ru_stdev, fraction), 'green')
@@ -454,7 +453,7 @@ def verify_bandwidth(net):
 #        (CUSTOM_IPERF_PATH, 5001, args.dir)
 # Note: The output file should be <args.dir>/iperf_server.txt
 #       It will be used later in count_connections()
-#TODO: how to create many connections?
+
 def start_receiver(net):
 		# Start iperf server.
     server = net.getNodeByName('h%d' % (args.n - 1))
@@ -491,7 +490,7 @@ def start_senders(net):
     		output_file = IPERF_CLIENT_OUTPUT % i
     		cmd = '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (CUSTOM_IPERF_PATH, server.IP(), port, seconds, args.cong, args.dir, output_file)
     		print cmd
-    		# Create nflows TODO: is this number correct.
+    		# Create nflows 
     		for j in range(args.nflows):
     			client.popen(cmd, shell=True)
 
@@ -507,17 +506,17 @@ def main():
     net.start()
     dumpNodeConnections(net.hosts)
     net.pingAll()
-    #TODO: uncomment.
+		
     # Verify latency. 
-    #if not verify_latency(net):
-    #		print "Incorrect latency."
-    #		return
+    if not verify_latency(net):
+    		print "Incorrect latency."
+    		return
     
     # Verify bandwidth.
-    #result = verify_bandwidth(net)
-    #if not result:
-		#		print 'Incorrect bandwidth.'
-		#		return
+    result = verify_bandwidth(net)
+    if not result:
+				print 'Incorrect bandwidth.'
+				return
 
     start_receiver(net)
 
