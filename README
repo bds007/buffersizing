@@ -17,9 +17,7 @@ reduced to half its value?
 
 The first packet of a flow will be dropped a t = 0. Around 1 RTT later, the sender knows
 that a packet was dropped because it receives no ack. Each flow halves its cwnd each time
-a packet is dropped. Finally, each time the cwnd is halved the flow must wait for the
-number of unacked packets to reach cwnd/2. If the link is fully utilized this should take 
-(cwnd / 2) / C seconds. 
+a packet is dropped. In our case this takes approximately 87 ms. 
 
 3) In the experimental setup, we use a modified iperf because it is hard to establish new 
 connections after long lived TCP flows have started. Why is it so?
